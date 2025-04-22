@@ -78,6 +78,10 @@ void running() {
 	}
 	logging(LL_DBG, MM, "All worker started");
 
+	//Debugging
+	//sleep(1);
+	//signal_handler(0);
+
 	for(int i =0; i < WORKER_MAX; i++) {
 		pthread_join(DAEMON.worker[i], NULL);
 	}
