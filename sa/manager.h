@@ -10,5 +10,6 @@ typedef struct {
 manager_t* sam_create();
 
 void*			sam_init_sas(manager_t* self, char* conf_filename);
+void*			sam_running(void* arg);
 
 #endif //__MANAGER_H__

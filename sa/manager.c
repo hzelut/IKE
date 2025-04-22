@@ -5,6 +5,7 @@
 #include "config.h"
 #include "sa.h"
 #include "log.h"
+#include "daemon.h"
 
 static const char* MM="SAM";
 
@@ -30,5 +31,28 @@ void* sam_init_sas(manager_t* self, char* conf_filename) {
 		logging(LL_DBG, MM, "Added new SA[%d]", i);
 	}
 
+	push_job(sam_running, self);
+	return NULL;
+}
+
+void* sam_running(void* arg) {
+	manager_t* self = arg;
+
+	ip4_addr src, dst;
+	buffer_t* buf;
+
+	logging(LL_DBG, MM, "Started running loop");
+	while(DAEMON.is_running) {
+		buf = net_recv(&src, &dst);
+		if(buf) {
+			logging(LL_DBG, MM, "[%s] -> [%s]", net_atos(src), net_atos(dst));
+
+			buf_free(buf);
+		}
+
+		buf = NULL;
+	}
+
+	logging(LL_DBG, MM, "Finished running loop");
 	return NULL;
 }
