@@ -63,9 +63,13 @@ bool net_send(ip4_addr src, ip4_addr dst, buffer_t* data) {
 buffer_t* net_recv(ip4_addr* src, ip4_addr* dst) {
 	network_t* self = DAEMON.NET;
 	packet_t* packet = que_deque(self->recv_que);
-	if(src) *src = packet->src;
-	if(dst) *dst = packet->dst;
-	return packet->data;
+	if(packet) {
+		if(src) *src = packet->src;
+		if(dst) *dst = packet->dst;
+		return packet->data;
+	}
+
+	return NULL;
 }
 
 void* net_receiving(void* arg) {
@@ -113,6 +117,7 @@ void* net_receiving(void* arg) {
 	}
 
 	que_enque(self->send_que, NULL);
+	que_enque(self->recv_que, NULL);
 	logging(LL_DBG, MM, "Finished receiving loop");
 	return NULL;
 }
