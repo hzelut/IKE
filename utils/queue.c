@@ -63,7 +63,7 @@ bool que_enque(queue_t* self, void* data) {
 void* que_deque(queue_t* self) {
 	// errors
 	if(que_is_null(self))
-		return false;
+		return NULL;
 
 	void* ret = NULL;
 

@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <errno.h>
+#include <string.h>
 
 #include "network.h"
 #include "daemon.h"
@@ -8,7 +10,8 @@
 static const char* MM="NET";
 
 void net_exit(network_t* self) {
-
+	que_enque(self->send_que, NULL);
+	que_enque(self->recv_que, NULL);
 	shutdown(self->sock, SHUT_RD);
 }
 
@@ -96,7 +99,7 @@ void* net_receiving(void* arg) {
 	logging(LL_DBG, MM, "Started receiving loop");
 	while(DAEMON.is_running) {
 		recv_len = recvmsg(self->sock, &msg, 0);
-		if(recv_len) {
+		if(recv_len > 0) {
 			for(cm = CMSG_FIRSTHDR(&msg); cm != NULL;
 					cm = CMSG_NXTHDR(&msg, cm)) {
 				if(cm->cmsg_level == IPPROTO_IP) {
@@ -114,10 +117,11 @@ void* net_receiving(void* arg) {
 				}
 			}
 		}
+		else if(recv_len == -1) {
+			logging(LL_ERR, MM, "recvmsg error: %s", strerror(errno));
+		}
 	}
 
-	que_enque(self->send_que, NULL);
-	que_enque(self->recv_que, NULL);
 	logging(LL_DBG, MM, "Finished receiving loop");
 	return NULL;
 }
