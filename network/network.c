@@ -86,18 +86,19 @@ void* net_receiving(void* arg) {
 	struct cmsghdr *cm;
 	struct in_pktinfo *pktinfo;
 
-	msg.msg_name = &client;
-	msg.msg_namelen = sizeof(client);
-	iov.iov_base = buf;
-	iov.iov_len = sizeof(buf);
-	msg.msg_iov = &iov;
-	msg.msg_iovlen = 1;
-	msg.msg_control = ancillary;
-	msg.msg_controllen = sizeof(ancillary);
-	msg.msg_flags = 0;
 
 	logging(LL_DBG, MM, "Started receiving loop");
 	while(DAEMON.is_running) {
+		msg.msg_name = &client;
+		msg.msg_namelen = sizeof(client);
+		iov.iov_base = buf;
+		iov.iov_len = sizeof(buf);
+		msg.msg_iov = &iov;
+		msg.msg_iovlen = 1;
+		msg.msg_control = ancillary;
+		msg.msg_controllen = sizeof(ancillary);
+		msg.msg_flags = 0;
+
 		recv_len = recvmsg(self->sock, &msg, 0);
 		if(recv_len > 0) {
 			for(cm = CMSG_FIRSTHDR(&msg); cm != NULL;
@@ -119,6 +120,7 @@ void* net_receiving(void* arg) {
 		}
 		else if(recv_len == -1) {
 			logging(LL_ERR, MM, "recvmsg error: %s", strerror(errno));
+			break;
 		}
 	}
 
