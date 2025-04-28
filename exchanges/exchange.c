@@ -31,7 +31,7 @@ exchange_t* exg_unpack(buffer_t* src) {
 	for(int i = 0; i < 8; i++) {
 		payload_rule_t* rule = &header_rule[i];
 		_buf_read(src, (uint8_t*)&self->header + rule->offset, rule->size, rule->is_reverse);
-		logging_hex(LL_DBG, MM, &self->header + rule->offset, rule->size);
+		logging_hex(LL_DBG, MM, (uint8_t*)&self->header + rule->offset, rule->size);
 	}
 	logging(LL_DBG, MM, "Done unpacking");
 
