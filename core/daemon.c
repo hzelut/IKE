@@ -9,6 +9,7 @@ static const char* MM="DAEMON";
 
 void* worker_loop(void* arg);
 void signal_handler(int sig);
+void daemon_close();
 
 void daemon_create() {
   DAEMON.LOG = log_create();
@@ -51,18 +52,22 @@ void* worker_loop(void* arg) {
 	return NULL;
 }
 
-void daemon_exit() {
+void daemon_close() {
+	DAEMON.is_running = false;
+
+	// Close modules
+	net_close(DAEMON.NET);
+
+	// Close workers
 	for(int i =0; i < WORKER_MAX; i++)
 		que_enque(DAEMON.job_que, NULL);
-
-	net_exit(DAEMON.NET);
 }
 
 void signal_handler(int sig) {
 	logging(LL_DBG, MM, "Received signal %d", sig);
 
-	DAEMON.is_running = false;
-	daemon_exit();
+	if(sig == SIGINT)
+		daemon_close();
 }
 
 void running() {

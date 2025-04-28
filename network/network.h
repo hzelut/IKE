@@ -14,7 +14,7 @@ typedef struct {
 
 network_t*	net_create();
 void				net_free(network_t* self);
-void				net_exit(network_t* self);
+void				net_close(network_t* self);
 
 bool				net_send(ip4_addr src, ip4_addr dst, buffer_t* data);
 buffer_t*		net_recv(ip4_addr* src, ip4_addr* dst);

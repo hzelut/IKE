@@ -9,7 +9,7 @@
 
 static const char* MM="NET";
 
-void net_exit(network_t* self) {
+void net_close(network_t* self) {
 	que_enque(self->send_que, NULL);
 	que_enque(self->recv_que, NULL);
 	shutdown(self->sock, SHUT_RD);

@@ -50,13 +50,13 @@ void* sam_running(void* arg) {
 				if(sa->local.addr == dst && sa->remote.addr == src) {
 					logging(LL_DBG, MM, "[%s] -> [%s]", net_atos(src), net_atos(dst));
 					exchange_t* exg = exg_unpack(buf);
-					//if(sa->last_exchange_type == 0 && exg->header.exchange_type == IKE_SA_INIT) {
-					//}
+					if(sa->last_exchange_type == 0 && exg->header.exchange_type == IKE_SA_INIT) {
+					}
 					break;
 				}
 			}
 
-			//buf_free(buf);
+			buf_free(buf);
 		}
 
 		buf = NULL;
