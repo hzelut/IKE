@@ -26,6 +26,7 @@ exchange_t* exg_create() {
 
 exchange_t* exg_unpack(buffer_t* src) {
 	exchange_t* self = exg_create();
+	self->buf = src;
 
 	logging(LL_DBG, MM, "Unpacking");
 	for(int i = 0; i < 8; i++) {
@@ -36,4 +37,13 @@ exchange_t* exg_unpack(buffer_t* src) {
 	logging(LL_DBG, MM, "Done unpacking");
 
 	return self;
+}
+
+void exg_unpack_plds(exchange_t* exg) {
+	payload_type type = exg->header.next_payload_type;
+	while(type != PT_NO) {
+		payload_t* pld = pld_unpack(exg->buf, type);
+		type = pld->next_type;
+		llt_insert_at_last(exg->payloads, pld);
+	}
 }

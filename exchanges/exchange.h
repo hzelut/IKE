@@ -46,10 +46,12 @@ typedef struct {
 typedef struct {
 	ike_header_t header;
 	linked_list_t* payloads;
+	buffer_t* buf;
 }exchange_t;
 
 exchange_t* exg_create();
 
 exchange_t* exg_unpack(buffer_t* src);
+void				exg_unpack_plds(exchange_t* exg);
 
 #endif //__EXCHANGE_H__

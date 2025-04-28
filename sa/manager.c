@@ -9,6 +9,8 @@
 
 static const char* MM="SAM";
 
+void __response_ike_sa_init(sa_t* sa, exchange_t* exg);
+
 manager_t* sam_create() {
 	manager_t* self =	calloc(1, sizeof(manager_t));
 	self->sas =	llt_create();
@@ -51,12 +53,11 @@ void* sam_running(void* arg) {
 					logging(LL_DBG, MM, "[%s] -> [%s]", net_atos(src), net_atos(dst));
 					exchange_t* exg = exg_unpack(buf);
 					if(sa->last_exchange_type == 0 && exg->header.exchange_type == IKE_SA_INIT) {
+						__response_ike_sa_init(sa, exg);
 					}
 					break;
 				}
 			}
-
-			buf_free(buf);
 		}
 
 		buf = NULL;
@@ -64,4 +65,8 @@ void* sam_running(void* arg) {
 
 	logging(LL_DBG, MM, "Finished running loop");
 	return NULL;
+}
+
+void __response_ike_sa_init(sa_t* sa, exchange_t* exg) {
+	exg_unpack_plds(exg);
 }

@@ -1,4 +1,7 @@
 #include "payload.h"
+#include "log.h"
+
+static const char* MM="PLD";
 
 payload_t* pld_create(payload_type type) {
 	payload_t* self = calloc(1, sizeof(payload_t));
@@ -51,4 +54,18 @@ char* pld_type_string(payload_type type) {
 		case PT_EAP: return "Extensible Authentication";
 		default: return "WTF!";
 	}
+}
+
+payload_t* pld_unpack(buffer_t* src, payload_type type) {
+	payload_t* self = pld_create(type);
+
+	logging(LL_DBG, MM, "Unpacking %s", pld_type_string(type));
+	for(size_t i = 0; i < self->rule_count; i++) {
+		payload_rule_t* rule = &self->rule[i];
+		_buf_read(src, (uint8_t*)self->body + rule->offset, rule->size, rule->is_reverse);
+		logging_hex(LL_DBG, MM, (uint8_t*)self->body + rule->offset, rule->size);
+	}
+	logging(LL_DBG, MM, "Done unpacking %s", pld_type_string(type));
+
+	return self;
 }
