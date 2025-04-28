@@ -3,12 +3,13 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "buffer.h"
 
 typedef struct {
 	size_t	offset;
-	size_t	size;
+	int     size;
 	bool		is_reverse;
 }payload_rule_t;
 
@@ -37,8 +38,9 @@ typedef struct {
 	void* body;
 
 	// RFC7296 - 3.2
-	uint16_t	length;
 	uint8_t		next_type;
+	uint8_t		reserved;
+	uint16_t	length;
 
 	payload_rule_t* rule;
 	size_t					rule_count;
