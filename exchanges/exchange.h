@@ -52,6 +52,9 @@ typedef struct {
 exchange_t* exg_create();
 
 exchange_t* exg_unpack(buffer_t* src);
-void				exg_unpack_plds(exchange_t* exg);
+void				exg_unpack_plds(exchange_t* self);
+
+bool				_exg_has_plds(exchange_t* self, ...);
+#define exg_has_plds(self, ...) _exg_has_plds(self, __VA_ARGS__, 0)
 
 #endif //__EXCHANGE_H__

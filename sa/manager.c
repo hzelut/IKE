@@ -6,6 +6,7 @@
 #include "sa.h"
 #include "log.h"
 #include "daemon.h"
+#include "payload.h"
 
 static const char* MM="SAM";
 
@@ -69,4 +70,8 @@ void* sam_running(void* arg) {
 
 void __response_ike_sa_init(sa_t* sa, exchange_t* exg) {
 	exg_unpack_plds(exg);
+	if(exg_has_plds(exg, PT_SA, PT_Nx, PT_KE))
+		logging(LL_DBG, MM, "Here");
+	else
+		logging(LL_DBG, MM, "NO");
 }

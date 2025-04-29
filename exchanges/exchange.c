@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <string.h>
 
 #include "exchange.h"
 #include "payload.h"
@@ -39,18 +40,50 @@ exchange_t* exg_unpack(buffer_t* src) {
 	return self;
 }
 
-void exg_unpack_plds(exchange_t* exg) {
-	payload_type type = exg->header.next_payload_type;
+void exg_unpack_plds(exchange_t* self) {
+	payload_type type = self->header.next_payload_type;
 
 	logging(LL_DBG, MM, "Unpacking");
 	int pld_count = 0;
 	while(type != PT_NO) {
-		payload_t* pld = pld_unpack(exg->buf, type);
+		payload_t* pld = pld_unpack(self->buf, type);
 		if(pld == NULL)
 			return;
 		type = pld->next_type;
-		llt_insert_at_last(exg->payloads, pld);
+		llt_insert_at_last(self->payloads, pld);
 		pld_count++;
 	}
 	logging(LL_DBG, MM, "Done unpacking - %d payloads", pld_count);
+}
+
+//#include <stdarg.h>
+//#include <stdio.h>
+
+bool _exg_has_plds(exchange_t* self, ...) {
+  if(self == NULL)
+    return false;
+
+	va_list args;
+	char map[PT_EAP+1] = {0,};
+  va_start(args, self);
+	memset(map, 0, PT_EAP+1);
+
+	llt_travel_reset(self->payloads);
+	for(payload_t* pld = llt_travel(self->payloads);
+			pld != NULL;
+			pld = llt_travel(self->payloads)) {
+		map[pld->type]++;
+	}
+
+	for(payload_type type = va_arg(args, payload_type);
+			type != PT_NO;
+			type = va_arg(args, payload_type)) {
+		if(map[type] == 0) {
+			va_end(args);
+			return false;
+		}
+	}
+
+	va_end(args);
+	return true;
 }
