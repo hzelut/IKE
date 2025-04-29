@@ -3,6 +3,8 @@
 
 #include "sa_payload.h"
 #include "ke_payload.h"
+#include "nx_payload.h"
+#include "n_payload.h"
 
 static const char* MM="PLD";
 
@@ -16,13 +18,17 @@ payload_t* pld_create(payload_type type) {
 		case PT_KE:
 			self = pld_ke_create();
 			break;
+		case PT_Nx: 
+			self = pld_nx_create();
+			break;
+		case PT_N:
+			self = pld_n_create();
+			break;
 		case PT_IDi:
 		case PT_IDr:
 		case PT_CERT:
 		case PT_CERTREQ:
 		case PT_AUTH: 
-		case PT_Nx: 
-		case PT_N:
 		case PT_D:
 		case PT_V:
 		case PT_TSi: 
@@ -32,6 +38,7 @@ payload_t* pld_create(payload_type type) {
 		case PT_EAP:
 		case PT_NO: 
 		default:
+			logging(LL_DBG, MM, "Not yet supported %s", pld_type_string(type));
 			//func(self);
 			break;
 	}
@@ -82,23 +89,34 @@ payload_t* pld_unpack(buffer_t* src, payload_type type) {
 	if(type == PT_SA)
 		pld_sa_unpack(self, src);
 	else {
-		uint8_t* pld = self->body;
+		uint8_t* body = self->body;
 		size_t l = 4;
 
 		for(size_t i = 0; i < self->rule_count; i++) {
 			payload_rule_t* rule = &self->rule[i];
 			int s = rule->size;
-			void* d = pld + rule->offset;
+			void* d = body + rule->offset;
 
+			// Dynamic
 			if(s == -1) {
 				s = self->length - l;
-				*(void **)(pld + rule->offset) = calloc(1, s);
-				d = *(void **)(pld + rule->offset);
+				*(void **)(body + rule->offset) = calloc(1, s);
+				d = *(void **)(body + rule->offset);
 			}
 
 			_buf_read(src, d, s, rule->is_reverse);
 			l += s;
 			logging_hex(LL_DBG, MM, d, s);
+		}
+
+		if(l < self->length) {
+			if(type == PT_N) {
+				pld_n_unpack(self, src);
+			}
+			else {
+				logging(LL_ERR, MM, "WTF!! where did the %d bytes go", self->length - l);
+				return NULL;
+			}
 		}
 	}
 	logging(LL_DBG, MM, "Done unpacking %s", pld_type_string(type));

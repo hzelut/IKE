@@ -41,11 +41,16 @@ exchange_t* exg_unpack(buffer_t* src) {
 
 void exg_unpack_plds(exchange_t* exg) {
 	payload_type type = exg->header.next_payload_type;
+
+	logging(LL_DBG, MM, "Unpacking");
+	int pld_count = 0;
 	while(type != PT_NO) {
 		payload_t* pld = pld_unpack(exg->buf, type);
 		if(pld == NULL)
-			break;
+			return;
 		type = pld->next_type;
 		llt_insert_at_last(exg->payloads, pld);
+		pld_count++;
 	}
+	logging(LL_DBG, MM, "Done unpacking - %d payloads", pld_count);
 }
