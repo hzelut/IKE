@@ -51,6 +51,7 @@ void				pld_free(payload_t* self);
 
 void				pld_pack(payload_t* self, buffer_t* dst);
 payload_t*	pld_unpack(buffer_t* src, payload_type type);
+int         pld_unpack_by_rule(uint8_t* dst, buffer_t* src, int length, payload_rule_t* rule, size_t rule_count);
 
 char* pld_type_string(payload_type type);
 

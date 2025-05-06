@@ -2,6 +2,7 @@
 #define __SA_PAYLOAD_H__
 
 #include "payload.h"
+#include "linked_list.h"
 
 /* RFC7296 - 3.3
                         1                   2                   3
@@ -17,7 +18,7 @@
                   Figure 6: Security Association Payload
  */
 typedef struct {
-	void* proposals;
+	linked_list_t* proposals;
 }sa_payload_t;
 
 payload_t*	pld_sa_create();

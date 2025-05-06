@@ -7,6 +7,7 @@
 #include "log.h"
 #include "daemon.h"
 #include "payload.h"
+#include "utils.h"
 
 static const char* MM="SAM";
 
@@ -53,7 +54,9 @@ void* sam_running(void* arg) {
 				if(sa->local.addr == dst && sa->remote.addr == src) {
 					logging(LL_DBG, MM, "[%s] -> [%s]", net_atos(src), net_atos(dst));
 					exchange_t* exg = exg_unpack(buf);
-					if(sa->last_exchange_type == 0 && exg->header.exchange_type == IKE_SA_INIT) {
+					if(sa->last_exchange_type == 0 &&
+							exg->header.exchange_type == IKE_SA_INIT &&
+							exg->header.SPIr == 0) {
 						__response_ike_sa_init(sa, exg);
 					}
 					break;
@@ -70,8 +73,14 @@ void* sam_running(void* arg) {
 
 void __response_ike_sa_init(sa_t* sa, exchange_t* exg) {
 	exg_unpack_plds(exg);
-	if(exg_has_plds(exg, PT_SA, PT_Nx, PT_KE))
-		logging(LL_DBG, MM, "Here");
-	else
-		logging(LL_DBG, MM, "NO");
+
+	if(!exg_has_plds(exg, PT_SA, PT_Nx, PT_KE)) {
+		logging(LL_DBG, MM, "Wrong exchange");
+		return;
+	}
+
+	// setup sa
+	sa->is_initiator = false;
+	sa->SPIi = exg->header.SPIi;
+	sa->SPIr = get_rand_spi();
 }

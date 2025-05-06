@@ -69,6 +69,29 @@ char* pld_type_string(payload_type type) {
 	}
 }
 
+int pld_unpack_by_rule(uint8_t* dst, buffer_t* src, int length, payload_rule_t* rule, size_t rule_count) {
+	int l = 0;
+
+	for(size_t i = 0; i < rule_count; i++) {
+		payload_rule_t* r = &rule[i];
+		int s = r->size;
+		void* d = dst + r->offset;
+
+		// Dynamic
+		if(s == -1) {
+			s = length - l;
+			*(void **)(dst + r->offset) = calloc(1, s);
+			d = *(void **)(dst + r->offset);
+		}
+
+		_buf_read(src, d, s, r->is_reverse);
+		l += s;
+		logging_hex(LL_DBG, MM, d, s);
+	}
+
+	return l;
+}
+
 payload_t* pld_unpack(buffer_t* src, payload_type type) {
 	payload_t* self = pld_create(type);
 	if(self == NULL) {
@@ -89,27 +112,8 @@ payload_t* pld_unpack(buffer_t* src, payload_type type) {
 	if(type == PT_SA)
 		pld_sa_unpack(self, src);
 	else {
-		uint8_t* body = self->body;
-		size_t l = 4;
-
-		for(size_t i = 0; i < self->rule_count; i++) {
-			payload_rule_t* rule = &self->rule[i];
-			int s = rule->size;
-			void* d = body + rule->offset;
-
-			// Dynamic
-			if(s == -1) {
-				s = self->length - l;
-				*(void **)(body + rule->offset) = calloc(1, s);
-				d = *(void **)(body + rule->offset);
-			}
-
-			_buf_read(src, d, s, rule->is_reverse);
-			l += s;
-			logging_hex(LL_DBG, MM, d, s);
-		}
-
-		if(l < self->length) {
+		int l = pld_unpack_by_rule(self->body, src, self->length-4, self->rule, self->rule_count);
+		if(l+4 < self->length) {
 			if(type == PT_N) {
 				pld_n_unpack(self, src);
 			}

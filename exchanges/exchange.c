@@ -56,9 +56,6 @@ void exg_unpack_plds(exchange_t* self) {
 	logging(LL_DBG, MM, "Done unpacking - %d payloads", pld_count);
 }
 
-//#include <stdarg.h>
-//#include <stdio.h>
-
 bool _exg_has_plds(exchange_t* self, ...) {
   if(self == NULL)
     return false;
